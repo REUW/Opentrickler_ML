@@ -66,6 +66,10 @@ typedef struct {
     SemaphoreHandle_t scale_measurement_ready;
     SemaphoreHandle_t scale_serial_write_access_mutex;
     float current_scale_measurement;
+
+    // Refcount: when > 0, active-polling drivers (e.g. G&G) must not
+    // send new data requests. Nested pause/resume is supported.
+    volatile int polling_pause_count;
 } scale_config_t;
 
 
@@ -87,6 +91,10 @@ bool scale_config_save(void);
 
 // Low lever handler for writing data to the scale
 void scale_write(const char * command, size_t len);
+
+// Pause / resume continuous polling (used by G&G and tare paths)
+void scale_pause_polling(void);
+void scale_resume_polling(void);
 
 // REST
 bool http_rest_scale_action(struct fs_file *file, int num_params, char *params[], char *values[]);
